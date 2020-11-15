@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/1.9.6/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>MicroBit Surveillance Client</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var PirState = false;
+        var LightState = false;
+        var ShakeState = false;
+        var NotifyText = "Your Home \n is Secure";
+
+        $(document).ready(function() {
+            console.log("Start");
+        });
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+
+        socket.on('connect', function () {
+            NotifyText = "Your Home \n is Secure";
+            console.log('Websocket connected!');
+            socket.send("User has connected");
+            document.getElementById("notifytext").innerText = NotifyText;
+            document.getElementById("pirstate").innerText = PirState;
+            document.getElementById("ledstate").innerText = LightState;
+            {#socket.emit('get_state', {SendFromClient: true});#}
+        });
+
+        socket.on('pir_state', function (msg) {
+            console.log(msg);
+            PirState = msg.pir_state;
+            {#document.getElementById("statehtml").innerText = PirState;#}
+
+            if (PirState === true){
+                NotifyText = 'Intruder \n Detected!';
+                console.log(NotifyText);
+                document.getElementById("notifytext").innerText = NotifyText;
+                document.getElementById("pirstate").innerText = PirState;
+            } else {
+                NotifyText = 'Your Home \n is Secure';
+                console.log(NotifyText);
+                document.getElementById("notifytext").innerText = NotifyText;
+                document.getElementById("pirstate").innerText = PirState;
+            }
+        });
+
+        socket.on('light_state', function (msg) {
+            console.log(msg);
+            LightState = msg.light_state;
+            {#document.getElementById("statehtml").innerText = PirState;#}
+
+            if (LightState === false){
+                NotifyText = 'No Light \n Detected!';
+                console.log(NotifyText);
+                document.getElementById("notifytext").innerText = NotifyText;
+                document.getElementById("ledstate").innerText = LightState;
+            } else {
+                NotifyText = 'Your Home \n is Secure';
+                console.log(NotifyText);
+                document.getElementById("notifytext").innerText = NotifyText;
+                document.getElementById("ledstate").innerText = LightState;
+            }
+        });
+
+        socket.on('shake_state', function (msg) {
+            console.log(msg);
+            ShakeState = msg.shake_state;
+            {#document.getElementById("statehtml").innerText = PirState;#}
+
+            if (LightState === true){
+                NotifyText = 'Activity \n Detected!';
+                console.log(NotifyText);
+                document.getElementById("notifytext").innerText = NotifyText;
+                {#document.getElementById("shakestate").innerText = ShakeState;#}
+            }
+        });
+
+        {/*
+        const interval = setInterval(() => {
+          socket.emit('get_state', {sendState: true});
+        }, 1000);
+
+        socket.on('state_from_server', function (msg) {
+            console.log(msg);
+
+        });
+        */}
+
+
+    </script>
+    <header class="text-gray-700 body-font">
+      <div class="flex flex-wrap p-8 flex-col bg-light md:flex-row sm:flex-row items-center">
+
+      </div>
+    </header>
+
+
+    <div class="Main-Container">
+        <h1></h1>
+{#        <p>State : <span id="statehtml"></span></p>#}
+{#        <p> <span id="notifyhtml"></span></p>#}
+    </div>
+
+    <section class="text-gray-700 body-font section-1">
+        <div class="section-sub1 align-center bg-green-light border-radius-8">
+            <p class="font-serif font-serif">
+                <span class="text-green" id="notifytext"></span>
+            </p>
+        </div>
+        <div class="section-sub2 border-radius-8">
+            <div class="bg-red-light section-sub21 border-radius-8 align-center">
+                <p class="text-red font-sans font-sans-highlight1">
+                    {{ data.title }}
+                </p>
+            </div>
+            <div class="section-sub22 border-radius-8">
+                <div class="bg-light section-sub221 border-radius-8 font-sans">
+                    <p class="text-red font font-sans-highlight3">
+                        System Up<br/>
+                        Since
+                    </p>
+                    <p class="text-red font-sans-highlight2">
+                        {{ data.running_since_date }} <br/>
+                        {{ data.running_since_time }}
+                    </p>
+                </div>
+                <div class="bg-light section-sub221 border-radius-8 font-sans">
+                    <p class="text-red font-sans-highlight3">Running</p>
+                    <p class="text-red font-sans-highlight2">
+                        PIR Sensor<br/>
+                        <span class="text-red font-sans-highlight3">
+                            State = <span class="text-red" id="pirstate">0</span>
+                        </span>
+                    </p>
+                    <p class="text-red font-sans-highlight2">
+                        Light Sensor<br/>
+                        <span class="text-red font-sans-highlight3">
+                            State = <span class="text-red" id="ledstate">0</span>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
